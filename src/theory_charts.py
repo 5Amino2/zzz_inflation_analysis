@@ -447,8 +447,149 @@ def plot_fig8_normalized_reward_threshold():
     plt.savefig(OUTPUT_DIR + 'fig8_normalized_reward_threshold.png', dpi=150, bbox_inches='tight')
     plt.show()
 
+# ==================== 图A: 危局强袭战——29条血条分数效率 η 对比 ====================
+# 展示每条血条的分数效率 η = score/hp，按7组着色。
+# 效率并非恒定——中间血条（17-14）效率最高（960.0），外圈血条（9-7）效率最低（520.0），差异接近2倍。
+# 水平虚线标注恒定效率参考值（60000/87.4 ≈ 686.5）。
+def plot_fig_weiju_hpbar_efficiency():
+    efficiencies = [score_per_segment[i] / hp_multipliers[i] for i in range(29)]
+    bar_indices = np.arange(1, 30)
+
+    # 7组颜色
+    group_colors = (['#4472C4']*4 + ['#ED7D31']*4 + ['#70AD47']*4 +
+                    ['#FF0000']*4 + ['#9B59B6']*4 + ['#A52A2A']*3 + ['#E91E63']*6)
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+    bars = ax.bar(bar_indices, efficiencies, color=group_colors, edgecolor='white', linewidth=0.5)
+
+    # 恒定效率参考线
+    const_eff = total_damage_score / total_hp  # ~686.5
+    ax.axhline(y=const_eff, color='gray', linestyle='--', linewidth=1.5, alpha=0.7,
+               label=f'恒定效率参考 ({const_eff:.1f} 分/血量)')
+
+    # 标注各组（组中点位置）
+    group_centers = [2.5, 6.5, 10.5, 14.5, 18.5, 22.0, 26.5]
+    group_labels = ['833.33 (外圈)', '705.88 (低谷)', '818.18', '960.00 (峰值)', '866.67', '520.00 (最低)', '540.00']
+    group_etas = [833.33, 705.88, 818.18, 960.00, 866.67, 520.00, 540.00]
+    for cx, label, eta in zip(group_centers, group_labels, group_etas):
+        ax.annotate(label, xy=(cx, eta), xytext=(cx, eta + 35),
+                    fontsize=8, ha='center', color='black',
+                    arrowprops=dict(arrowstyle='->', color='gray', alpha=0.6))
+
+    ax.set_xlabel('血条编号（29=最外圈, 1=最内圈）', fontsize=12)
+    ax.set_ylabel('分数效率 η（分 / 血量单位）', fontsize=12)
+    ax.set_title('危局强袭战：29条血条的分数效率 η 对比', fontsize=14, fontweight='bold')
+    ax.set_xlim(0, 30)
+    ax.set_ylim(0, 1100)
+    ax.set_xticks([1, 4, 8, 12, 16, 20, 23, 29])
+    ax.legend(loc='upper left', fontsize=9)
+    ax.grid(True, alpha=0.3, axis='y')
+    plt.tight_layout()
+    plt.savefig(OUTPUT_DIR + 'fig_weiju_hpbar_efficiency.png', dpi=150, bbox_inches='tight')
+    plt.show()
+
+
+# ==================== 图B: 危局强袭战——累计伤害-累计分数映射 ====================
+# 展示分段线性映射：累计伤害（x轴）→ 累计伤害分（y轴）。
+# 红色虚线为从(0,0)到(87.4,60000)的线性参考，凸显实际映射的非线性——曲线在中段"弓起"。
+# 标注0伤害点和满伤害点。
+def plot_fig_weiju_cumulative_damage_score():
+    fig, ax = plt.subplots(figsize=(10, 7))
+
+    # 分段线性实际曲线
+    ax.plot(cumulative_hp, cumulative_score, 'b-', linewidth=2.5, label='实际分段线性映射')
+
+    # 线性参考虚线（恒定效率）
+    ax.plot([0, total_hp], [0, total_damage_score], 'r--', linewidth=1.8, alpha=0.8,
+            label=f'线性参考（恒定效率 {total_damage_score/total_hp:.0f} 分/血量）')
+
+    # 标注端点（0伤害和满伤害）
+    ax.scatter([0], [0], color='blue', s=100, zorder=5)
+    ax.scatter([total_hp], [total_damage_score], color='blue', s=100, zorder=5)
+    ax.annotate(f'(0, 0)\n零伤害起点', xy=(0, 0), xytext=(5, 5000),
+                fontsize=10, color='blue', arrowprops=dict(arrowstyle='->', color='blue', alpha=0.6))
+    ax.annotate(f'({total_hp:.1f}, {total_damage_score:.0f})\n满分点',
+                xy=(total_hp, total_damage_score), xytext=(total_hp-25, total_damage_score-8000),
+                fontsize=10, color='blue', arrowprops=dict(arrowstyle='->', color='blue', alpha=0.6))
+
+    # 标注组边界点
+    group_boundaries = [4, 8, 12, 16, 20, 23]
+    for b in group_boundaries:
+        ax.scatter([cumulative_hp[b]], [cumulative_score[b]], color='green', s=40, zorder=4)
+
+    const_eff_ref = total_damage_score / total_hp
+
+    # 标注最大偏差区域
+    # 在中段（bar 17-14, cumulative_hp 约35-45）填充偏差
+    mid_start = cumulative_hp[12]  # bar 17开始 (0-indexed: bar 17 = index 12)
+    mid_end = cumulative_hp[16]    # bar 14结束 (0-indexed: bar 14 = index 16)
+    ax.fill_between([mid_start, mid_end],
+                    [mid_start * const_eff_ref, mid_end * const_eff_ref],
+                    [cumulative_score[12], cumulative_score[16]],
+                    alpha=0.15, color='green', label='超线性增益区（峰值效率段）')
+
+    ax.set_xlabel('累计伤害输出 q（血量单位）', fontsize=12)
+    ax.set_ylabel('累计伤害分', fontsize=12)
+    ax.set_title('危局强袭战：累计伤害-累计分数映射（非线性）', fontsize=14, fontweight='bold')
+    ax.set_xlim(-2, total_hp + 5)
+    ax.set_ylim(-2000, total_damage_score + 5000)
+    ax.legend(loc='lower right', fontsize=9)
+    ax.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(OUTPUT_DIR + 'fig_weiju_cumulative_damage_score.png', dpi=150, bbox_inches='tight')
+    plt.show()
+
+
+# ==================== 图C: 式舆防卫战——时间倍率阶梯函数 ====================
+# 展示游戏时间（0-300s）与得分倍率的阶梯函数关系。
+# 倍率从5.0×逐级降至1.0×，共9个平台。垂直线标注60秒满分边界。
+def plot_fig_shiyu_time_multiplier():
+    fig, ax = plt.subplots(figsize=(11, 6))
+
+    # 阶梯图 (step plot with 'post')
+    # time_boundaries有10个点，time_rates有9个值；step需要等长，在rates末尾补最后一个值
+    rates_for_step = time_rates + [time_rates[-1]]
+    ax.step(time_boundaries, rates_for_step, where='post', linewidth=2.5, color='#8E44AD',
+            label='时间倍率')
+
+    # 填充区域
+    ax.fill_between(time_boundaries, 0, rates_for_step, step='post', alpha=0.12, color='#8E44AD')
+
+    # 标注每个平台
+    tier_labels = ['5.0×', '4.2×', '3.5×', '3.0×', '2.5×', '2.0×', '1.6×', '1.3×', '1.0×']
+    for i in range(len(time_boundaries)-1):
+        mid = (time_boundaries[i] + time_boundaries[i+1]) / 2
+        rate = time_rates[i]
+        ax.text(mid, rate + 0.12, tier_labels[i], ha='center', fontsize=9, color='#8E44AD', fontweight='bold')
+
+    # 60秒满分边界
+    ax.axvline(x=60, color='green', linestyle='--', linewidth=1.5, alpha=0.8, label='满分边界（60秒）')
+    ax.annotate('满分边界\n5.0×区间', xy=(60, 5.0), xytext=(75, 5.3),
+                fontsize=9, color='green', arrowprops=dict(arrowstyle='->', color='green', alpha=0.7))
+
+    # 时间区间标注
+    interval_labels = ['0-60s', '61-70s', '71-80s', '81-90s', '91-105s', '106-120s', '121-135s', '136-150s', '151-300s']
+    for i in range(len(time_boundaries)-1):
+        mid = (time_boundaries[i] + time_boundaries[i+1]) / 2
+        ax.text(mid, 0.15, interval_labels[i], ha='center', fontsize=7, color='gray')
+
+    ax.set_xlabel('游戏时间（秒）', fontsize=12)
+    ax.set_ylabel('得分倍率', fontsize=12)
+    ax.set_title('式舆防卫战：时间倍率阶梯函数', fontsize=14, fontweight='bold')
+    ax.set_xlim(-5, 310)
+    ax.set_ylim(0, 5.8)
+    ax.legend(loc='upper right', fontsize=9)
+    ax.grid(True, alpha=0.3, axis='y')
+    plt.tight_layout()
+    plt.savefig(OUTPUT_DIR + 'fig_shiyu_time_multiplier.png', dpi=150, bbox_inches='tight')
+    plt.show()
+
+
 # ==================== 主程序：依次生成所有图表 ====================
 if __name__ == "__main__":
+    plot_fig_weiju_hpbar_efficiency()
+    plot_fig_weiju_cumulative_damage_score()
+    plot_fig_shiyu_time_multiplier()
     plot_fig1_weiju_score_decay()
     plot_fig2_shiyu_score_decay()
     plot_fig3_normalized_comparison()
@@ -457,4 +598,4 @@ if __name__ == "__main__":
     plot_fig6_weiju_reward_threshold()
     plot_fig7_shiyu_reward_threshold()
     plot_fig8_normalized_reward_threshold()
-    print("所有8幅图表已生成完毕！")
+    print("所有11幅图表已生成完毕！")
