@@ -326,7 +326,7 @@ print("预测总览表1: 危局分数随期数演化预测")
 print("=" * 80)
 
 hz_overview_T = [30, 45, 60, 75, 90, 120, 150, 180]
-hz_overview_periods = [1, 5, 10, 15, 20, 25, 30, 35, 40, 41, 45, 50]
+hz_overview_periods = [1, 5, 10, 20, 30, 40, 50, 60]
 
 header = f"{'T_full':>8s}"
 for p in hz_overview_periods:
@@ -354,8 +354,8 @@ print("=" * 80)
 print("预测总览表2: 式舆分数随节点演化预测")
 print("=" * 80)
 
-sd_overview_T = [20, 30, 40, 50, 60, 70, 80, 100, 120]
-sd_overview_nodes = [1, 3, 5, 7, 9, 11, 13, 15, 20, 25, 30]
+sd_overview_T = list(range(20, 130, 10))  # 20, 30, 40, ..., 120
+sd_overview_nodes = [1] + list(range(5, 45, 5))  # 1, 5, 10, 15, 20, 25, 30, 35, 40
 
 header = f"{'T_base':>8s}"
 for n in sd_overview_nodes:

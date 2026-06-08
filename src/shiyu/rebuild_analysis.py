@@ -462,6 +462,72 @@ fig.savefig('../../charts/shiyu/boss_hp_combined.png', dpi=150, bbox_inches='tig
 plt.close()
 print("Chart 4/4 saved: boss_hp_combined.png")
 
+# --- Chart 5: R² vs 膨胀速度 散点图（排除R²<0.85异常点） ---
+# 排除 秽息行者·蝎骸 (R²=0.7085), 秽蚀·色雷斯人 (R²=0.7016), 秽蚀·狛野真斗 (R²=0.5425)
+EXCLUDED_BOSSES = ['秽息行者·蝎骸', '秽蚀·色雷斯人', '秽蚀·狛野真斗']
+filtered_results = [r for r in sufficient_results if r['monster'] not in EXCLUDED_BOSSES]
+
+if len(filtered_results) > 0:
+    fig, ax = plt.subplots(figsize=(14, 8))
+
+    r2_vals_filtered = [r['r2'] for r in filtered_results]
+    slope_vals_filtered = [r['slope_wan'] for r in filtered_results]
+    n_vals_filtered = [r['n'] for r in filtered_results]
+
+    scatter = ax.scatter(r2_vals_filtered, slope_vals_filtered,
+                        s=[n * 60 for n in n_vals_filtered],
+                        c=range(len(filtered_results)),
+                        cmap='YlOrRd', alpha=0.8, edgecolors='black', linewidth=0.5)
+
+    for r in filtered_results:
+        ax.annotate(r['monster'],
+                   xy=(r['r2'], r['slope_wan']),
+                   xytext=(5, 5), textcoords='offset points',
+                   fontsize=7, alpha=0.8)
+
+    ax.axhline(y=np.median(slope_vals_filtered), color='blue',
+              linestyle='--', alpha=0.5,
+              label=f'膨胀速度中位数: {np.median(slope_vals_filtered):.1f} 万/节点')
+    ax.axvline(x=np.median(r2_vals_filtered), color='green',
+              linestyle='--', alpha=0.5,
+              label=f'R$^2$中位数: {np.median(r2_vals_filtered):.4f}')
+
+    ax.text(0.98, 0.98, '高线性 + 快膨胀\n(最值得关注)', transform=ax.transAxes,
+           fontsize=8, ha='right', va='top', alpha=0.6)
+    ax.text(0.02, 0.98, '高线性 + 慢膨胀\n(稳定缓慢增长)', transform=ax.transAxes,
+           fontsize=8, ha='left', va='top', alpha=0.6)
+    ax.text(0.98, 0.02, '低线性 + 快膨胀\n(波动大但涨得快)', transform=ax.transAxes,
+           fontsize=8, ha='right', va='bottom', alpha=0.6)
+    ax.text(0.02, 0.02, '低线性 + 慢膨胀\n(波动大且涨得慢)', transform=ax.transAxes,
+           fontsize=8, ha='left', va='bottom', alpha=0.6)
+
+    ax.set_xlabel('R$^2$ (线性拟合优度)', fontsize=12)
+    ax.set_ylabel('每节点HP膨胀速度 (万/节点)', fontsize=12)
+    ax.set_title('BOSS HP膨胀：线性度 vs 膨胀速度 (排除R$^2$<0.85异常点)\n'
+                 '已排除: 秽息行者·蝎骸(R$^2$=0.71)、秽蚀·色雷斯人(R$^2$=0.70)、秽蚀·狛野真斗(R$^2$=0.54)\n'
+                 '(点大小=出场节点数)',
+                fontsize=14, fontweight='bold')
+    cbar = plt.colorbar(scatter, ax=ax)
+    cbar.set_label('BOSS序号', fontsize=10)
+    ax.legend(fontsize=9)
+    ax.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    fig.savefig('../../charts/shiyu/chart_r2_vs_growth_filtered.png', dpi=150, bbox_inches='tight')
+    plt.close()
+    print("Chart 5/5 saved: chart_r2_vs_growth_filtered.png")
+
+    # Print filtered statistics
+    print(f"\n[式舆防卫战 排除低线性异常点分析]")
+    print(f"  排除BOSS: {', '.join(EXCLUDED_BOSSES)}")
+    print(f"  过滤后: {len(filtered_results)} 种BOSS")
+    print(f"  R2均值 = {np.mean(r2_vals_filtered):.4f} (全部: 0.8610)")
+    print(f"  R2中位数 = {np.median(r2_vals_filtered):.4f} (全部: 0.9811)")
+    print(f"  R2 >= 0.95: {sum(1 for v in r2_vals_filtered if v >= 0.95)}/{len(filtered_results)} ({100*sum(1 for v in r2_vals_filtered if v >= 0.95)/len(filtered_results):.1f}%)")
+    print(f"  所有BOSS R2 >= 0.95: {'是' if all(v >= 0.95 for v in r2_vals_filtered) else '否'}")
+    print(f"  膨胀速度均值 = {np.mean(slope_vals_filtered):.1f} 万/节点 (全部: 134.99)")
+    print(f"  膨胀速度中位数 = {np.median(slope_vals_filtered):.1f} 万/节点")
+
 # ============================================================
 # 8. Save Excel
 # ============================================================

@@ -367,10 +367,10 @@ def plot_inflation_analysis(df_results, pivot):
     bars = ax.barh(range(len(df_sorted_r2)), df_sorted_r2['r2'], color=colors_r2)
     ax.set_yticks(range(len(df_sorted_r2)))
     ax.set_yticklabels(df_sorted_r2['monster_name'], fontsize=8)
-    ax.set_xlabel('R² (拟合优度)', fontsize=12)
-    ax.set_title('怪物HP膨胀线性度排名 (R²越接近1越线性)', fontsize=14, fontweight='bold')
-    ax.axvline(x=0.8, color='green', linestyle='--', alpha=0.5, label='R²=0.8 (高线性)')
-    ax.axvline(x=0.6, color='orange', linestyle='--', alpha=0.5, label='R²=0.6 (中等线性)')
+    ax.set_xlabel('R$^2$ (拟合优度)', fontsize=12)
+    ax.set_title('怪物HP膨胀线性度排名 (R$^2$越接近1越线性)', fontsize=14, fontweight='bold')
+    ax.axvline(x=0.8, color='green', linestyle='--', alpha=0.5, label='R$^2$=0.8 (高线性)')
+    ax.axvline(x=0.6, color='orange', linestyle='--', alpha=0.5, label='R$^2$=0.6 (中等线性)')
     ax.legend(fontsize=9)
     ax.grid(True, alpha=0.3, axis='x')
 
@@ -414,7 +414,7 @@ def plot_inflation_analysis(df_results, pivot):
     ax.axhline(y=df['growth_rate_pct_per_season'].median(), color='blue',
               linestyle='--', alpha=0.5, label=f'增长率中位数: {df["growth_rate_pct_per_season"].median():.2f}%')
     ax.axvline(x=df['r2'].median(), color='green',
-              linestyle='--', alpha=0.5, label=f'R²中位数: {df["r2"].median():.3f}')
+              linestyle='--', alpha=0.5, label=f'R$^2$中位数: {df["r2"].median():.3f}')
 
     # 四象限标注
     mid_r2 = df['r2'].median()
@@ -428,7 +428,7 @@ def plot_inflation_analysis(df_results, pivot):
     ax.text(0.02, 0.02, '低线性 + 慢膨胀\n(波动大且涨得慢)', transform=ax.transAxes,
            fontsize=8, ha='left', va='bottom', alpha=0.6)
 
-    ax.set_xlabel('R² (线性拟合优度)', fontsize=12)
+    ax.set_xlabel('R$^2$ (线性拟合优度)', fontsize=12)
     ax.set_ylabel('每赛季HP增长率 (%)', fontsize=12)
     ax.set_title('怪物HP膨胀：线性度 vs 膨胀速度\n(点大小=出现赛季数，颜色=总增长率%)',
                 fontsize=14, fontweight='bold')
@@ -465,7 +465,7 @@ def plot_inflation_analysis(df_results, pivot):
                   label=f'增长率中位数: {df_filtered["growth_rate_pct_per_season"].median():.2f}%')
         ax.axvline(x=df_filtered['r2'].median(), color='green',
                   linestyle='--', alpha=0.5,
-                  label=f'R²中位数: {df_filtered["r2"].median():.3f}')
+                  label=f'R$^2$中位数: {df_filtered["r2"].median():.3f}')
 
         ax.text(0.98, 0.98, '高线性 + 快膨胀\n(最值得关注)', transform=ax.transAxes,
                fontsize=8, ha='right', va='top', alpha=0.6)
@@ -476,10 +476,10 @@ def plot_inflation_analysis(df_results, pivot):
         ax.text(0.02, 0.02, '低线性 + 慢膨胀\n(波动大且涨得慢)', transform=ax.transAxes,
                fontsize=8, ha='left', va='bottom', alpha=0.6)
 
-        ax.set_xlabel('R² (线性拟合优度)', fontsize=12)
+        ax.set_xlabel('R$^2$ (线性拟合优度)', fontsize=12)
         ax.set_ylabel('每赛季HP增长率 (%)', fontsize=12)
         ax.set_title('怪物HP膨胀：线性度 vs 膨胀速度 (排除低线性异常点)\n'
-                     '已排除: 死路屠夫(R²=0.16)、霸主侵蚀体·庞培(R²=0.80)\n'
+                     '已排除: 死路屠夫(R$^2$=0.16)、霸主侵蚀体·庞培(R$^2$=0.80)\n'
                      '(点大小=出现赛季数，颜色=总增长率%)',
                     fontsize=14, fontweight='bold')
         cbar = plt.colorbar(scatter, ax=ax)
@@ -492,8 +492,8 @@ def plot_inflation_analysis(df_results, pivot):
         plt.close(fig)
         print(f"[膨胀分析图表] 已生成排除异常点版本: chart_r2_vs_growth_filtered.png")
         print(f"  排除怪物: {', '.join(EXCLUDED_MONSTERS)}")
-        print(f"  过滤后: {len(df_filtered)} 种怪物, R²均值={df_filtered['r2'].mean():.4f}, "
-              f"R²中位数={df_filtered['r2'].median():.4f}")
+        print(f"  过滤后: {len(df_filtered)} 种怪物, R2均值={df_filtered['r2'].mean():.4f}, "
+              f"R2中位数={df_filtered['r2'].median():.4f}")
         print(f"  斜率均值={df_filtered['slope'].mean():.0f} HP/期, "
               f"斜率中位数={df_filtered['slope'].median():.0f} HP/期")
 
@@ -535,7 +535,7 @@ def plot_facet_fits(df_results, pivot):
         # 标注统计量
         ax.text(0.02, 0.98,
                f"斜率: {row['slope']:.0f}/赛季\n"
-               f"R²: {row['r2']:.3f}\n"
+               f"R$^2$: {row['r2']:.3f}\n"
                f"增长率: {row['growth_rate_pct_per_season']:.2f}%/赛季",
                transform=ax.transAxes, fontsize=7, va='top',
                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
